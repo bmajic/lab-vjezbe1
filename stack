@@ -1,0 +1,187 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<ctype.h>
+
+
+typedef struct stog* position;
+
+struct stog {
+
+	double value;
+	position next;
+
+};
+
+position CreateNewElement(double value)
+{
+	position newElement = (position)malloc(sizeof(stog));
+
+	if (!newElement) return NULL;
+
+	newElement->value = value;
+	newElement->next = NULL;
+
+	return newElement;
+}
+
+
+int Push(position head, double value)
+{
+	position nE = CreateNewElement(value);
+
+	if (!nE) return-1;
+
+	nE->next = head->next;
+	head->next = nE;
+
+	return 0;
+
+}
+
+int isEmpty(position head)
+{
+	return head->next == NULL;
+}
+
+double Pop(position head)
+{
+	if (isEmpty)
+	{
+		printf("Stog je prazan!");
+		return -1;
+	}
+
+	position temp = head->next;
+	double value = temp->value;
+
+	head->next = temp->next;
+	free(temp);
+
+	return value;
+}
+
+int preformOperator(position head, char operation)
+{
+	double operand1 = Pop(head);
+	double operand2 = Pop(head);
+
+	double result;
+
+	switch (operation)
+	{ 
+	case '+':
+		result = operand1 + operand2;
+		break;
+
+	case '-':
+		result = operand1 - operand2;
+		break;
+
+	case '*':
+		result = operand1 * operand2;
+		break;
+    
+	case '/':
+		if (operand2 == 0)
+		{
+			printf("Djeljenje s nula nije dozvoljeno");
+			return -1;
+		}
+		result = operand1 / operand2;
+		break;
+	default:
+		printf("Nepoznata operacija!!");
+		return -1;
+	}
+
+	Push(head, result);
+	return 0;
+}
+
+void freeStack(position head)
+{
+	while (!isEmpty(head))
+	{
+		Pop(head);
+	}
+}
+
+
+
+int calculatePostfix(const char* filename,position head)
+{
+	FILE* fp = fopen(filename, "r");
+	if (fp == NULL)
+	{
+		printf("Erorr in files opening");
+		return NULL;
+	}
+
+	char buffer[1024];
+
+	while (fscanf(fp, "%s", buffer) == 1)
+	{
+		if (isdigit(buffer[0]) || (buffer[0] == '-' && isdigit(buffer[1])))
+		{
+			double value = atoi(buffer);
+			Push(head, value);
+
+		}
+
+		else if (strlen(buffer) == 1)
+		{
+			if (preformOperator(head, buffer[0]) != 0)
+			{
+				fclose(fp);
+				return -1;
+			}
+		}
+		else {
+			printf("Neispravan token %s\n!", buffer);
+			fclose(fp);
+			return -1;
+		}
+	}
+
+	fclose(fp);
+
+	if (head->next && head->next->next)
+	{
+		printf("Neispravan stog!");
+		return -1;
+	}
+	
+
+	return Pop(head);
+
+}
+
+
+int main()
+{
+
+	position stackHead = CreateNewElement(5);
+
+	const char* filename = "postfix.txt";
+
+	double result = calculatePostfix(filename,stackHead);
+
+	if (result != -1)
+	{
+		printf("Rezultat postfiksnog izraza je %f ", result);
+	}
+	else{
+		printf("Error in postfix");
+	}
+
+	while (stackHead->next)
+	{
+		Pop(stackHead);
+	}
+
+	free(stackHead);
+
+	return 0;
+
+}
