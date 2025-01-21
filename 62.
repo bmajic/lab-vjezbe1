@@ -1,0 +1,171 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+
+typedef struct Racun *pozR;
+typedef struct Artikl* pozA;
+
+
+struct Racun
+{
+	int d, m, y;
+	pozA headArtikla;
+	pozR next;
+};
+
+struct Artikl {
+	char naziv[1024];
+	int kolicina;
+	double cijena;
+
+	pozA next;
+};
+
+
+pozR Stvori(pozR headR, int d, int m, int y)
+{
+	pozR novi = (pozR)malloc(sizeof(Racun));
+	if (!novi)return NULL;
+
+	novi->d = d;
+	novi->m = m;
+	novi->y = y;
+
+	novi->headArtikla = NULL;
+	novi->next = NULL;
+
+	sortirajRacun(headR, novi);
+
+	return novi;
+}
+
+int sortirajRacun(pozR headR, pozR nE)
+{
+	pozR current = headR;
+
+	while (current && (nE->y > current->y || (nE->y == current->y && nE->m > current->m) || (nE->y == current->y && nE->m == current->m && nE->d > current->d)))
+	{
+		current = current->next;
+
+	}
+
+	nE->next = current->next;
+	current->next = nE;
+
+	return 0;
+
+}
+
+int KreirajArtiklSortirano(pozR Racun, char naziv[], int kolicina, double cijena)
+{
+	pozA novi = (pozA)malloc(sizeof(Artikl));
+	if (!novi);
+
+
+	strncpy(novi->naziv, naziv, sizeof(novi->naziv) - 1);
+	novi->naziv[sizeof(novi->naziv) - 1] = '\0';
+
+	novi->kolicina = kolicina;
+	novi->cijena = cijena;
+
+
+	novi->next = NULL;
+
+	pozA currunt = Racun->headArtikla;
+
+	if (!currunt && strcmp(currunt->naziv, naziv) < 0)
+	{
+		novi->next = Racun->headArtikla;
+		Racun->headArtikla = novi;
+	}
+
+
+	while (currunt && strcmp(currunt->naziv, naziv) > 0)
+	{
+		currunt = currunt->next;
+	}
+
+	novi->next = currunt->next;
+	currunt->next = novi;
+
+	return;
+
+
+}
+
+int CitajDatoteku(const char* filename, pozR head)
+{
+	FILE* fp = fopen(filename, "r");
+	if (!fp) return -1;
+
+
+	char naziv[1024];
+
+	while (fscanf(fp, "%s", naziv) == 1)
+	{
+		citajRacun(filename, head);
+	}
+}
+
+int citajRacun(const char* filename, pozR head)
+{
+	FILE* fp = fopen(filename, "r";
+	if (!fp) return -1;
+
+
+	int d, m, y;
+
+	fscanf(fp, "%d %d %d", &d, m, y);
+
+	pozR novi = Stvori(head, d, m, y);
+
+	char naziv[1024];
+	int kolicina;
+	double cijena;
+
+	while (fscanf(fp, "%s %d %lf", naziv, kolicina, cijena) == 3)
+	{
+		KreirajArtiklSortirano(novi,naziv,kolicina,cijena);
+	}
+
+	fclose(fp);
+	return 0;
+
+
+}
+
+
+void print(pozR headR)
+{
+
+	pozR currentR = headR->next;
+
+
+	while (currentR)
+	{
+		printf(" Racun: %d %d %d", currentR->d, currentR->m, currentR->y);
+
+		pozA currentA = currentR->headArtikla->next;
+
+		while (currentA)
+		{
+			printf("%s %d %lf", currentA->naziv, currentA->kolicina, currentA->cijena);
+		}
+
+		currentA = currentA->next;
+	}
+
+	currentR->next;
+
+	return;
+
+}
+
+
+int main()
+{
+
+	struct Ra
+}
+
