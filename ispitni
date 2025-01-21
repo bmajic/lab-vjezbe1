@@ -1,0 +1,119 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<ctype.h>
+
+typedef struct word* position;
+
+struct word
+{
+	char rijec[1024];
+	int counter;
+	position next;
+
+};
+
+position createNewWord(const char* rijec)
+{
+	position nE = (position)malloc(sizeof(word));
+	if (!nE) return NULL;
+
+
+	strcpy(nE->rijec, rijec);
+	nE->counter = 1;
+    nE->next = NULL;
+
+	return nE;
+}
+
+
+
+void AddorUpdate(position head, const char* rijec)
+{
+	position current = head->next;
+
+	while (current != NULL)
+	{
+		if (strcmp(current->rijec, rijec) == 0)
+		{
+			current->counter++;
+			return;
+		}
+
+		current = current->next;
+	}
+
+	// Ako riječ nije pronađena, dodajte je na početak liste
+	position newWord = createNewWord(rijec);
+	if (!newWord)
+	{
+		printf("Greška u alokaciji memorije!\n");
+		return;
+	}
+
+	newWord->next = head->next;
+	head->next = newWord;
+}
+
+
+ int citajIzDatoteke(position head, const char* filename)
+{
+	FILE* fp = fopen(filename, "r");
+	if (!fp)return -1;
+
+	char rijec[1024];
+
+	while (fscanf(fp, "%s", rijec) == 1)
+	{
+		int len = strlen(rijec);
+		if (len > 0 && ispunct(rijec[len - 1]))
+		{
+			rijec[len - 1] = '\0';
+		}
+		AddorUpdate(head, rijec);
+	}
+
+	fclose(fp);
+	return 0;
+}
+
+
+void printList(position head)
+{
+	position current = head->next;
+
+	while (current != NULL)
+	{
+		printf("%s  : %d\n", current->rijec, current->counter);
+		current = current->next;
+	}
+}
+
+void freeList(position head)
+{
+	position current = head->next;
+		
+	while (current != NULL)
+	{
+		position temp = current;
+		current = current->next;
+		free(temp);
+	}
+}
+
+int main()
+{
+	struct word head;
+	head.next = NULL;
+
+	if (citajIzDatoteke(&head, "rijeci.txt") == 0)
+	{
+		printf("Rijeci u datoteci su:\n ");
+		printList(&head);
+	}
+
+	freeList(&head);
+
+	return 0;
+}
