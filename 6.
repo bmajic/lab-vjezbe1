@@ -1,0 +1,189 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+typedef struct Racun* pozicijRacuna;
+typedef struct Artikl* pozicijaArtikla;
+
+struct Racun {
+
+	int d, m, y;
+	pozicijaArtikla headArtikla;
+	pozicijRacuna next;
+
+};
+
+struct Artikl
+{
+	char naziv[1024];
+	int kolicina;
+	double cijena;
+	pozicijaArtikla next;
+
+};
+
+int citajDatoteku(const char* filename, pozicijRacuna headRacuna)
+{
+	FILE* fp = fopen(filename, "r");
+	if (!fp)return -1;
+
+	char naziv[1024];
+
+	while (fscanf(fp, "%s", naziv) == 1)
+	{
+		citajRacun(naziv, headRacuna);
+	}
+
+	fclose(fp);
+	return 0; 
+
+}
+
+
+int citajRacun(const char* filename, pozicijRacuna headRacuna)
+{
+
+	FILE* fp = fopen(filename, "r");
+	if (!fp)return -1;
+
+
+	int d, m, y;
+
+	if (fscanf(fp, "%d %d %d", &d, &m, &y) != 3)
+	{
+		printf("Greška u ?itanju ra?una %s !!\n",filename);
+		fclose(fp);
+		return -1;
+	}
+	
+		pozicijRacuna novi= KreirajRacun(headRacuna, d, m, y);
+		if (!novi)
+		{
+			printf("Greška pri kreiranju novog ra?una");
+			fclose(fp);
+			return -1;
+		}
+	
+		char naziv[1024];
+		int kolicina;
+		double cijena;
+
+		while (fscanf(fp, "%s %d %lf", naziv, &kolicina, &cijena) == 3)
+		{
+			KreirajArtiklSortirano(novi, naziv, kolicina, cijena);
+		}
+	
+		fclose(fp);
+		return 0;
+}
+
+pozicijRacuna KreirajRacun(pozicijRacuna head, int d, int m, int y)
+{
+	pozicijRacuna novi = (pozicijRacuna)malloc(sizeof(Racun));
+	if (!novi) return NULL;
+
+	novi->y = y;
+	novi->m = m;
+	novi->d = d;
+
+	novi->next = NULL;
+	novi->headArtikla = NULL;
+
+
+	SortirajRacun(head, novi);
+	
+
+	return novi;
+}
+
+int  SortirajRacun(pozicijRacuna head, pozicijRacuna nE)
+{
+	pozicijRacuna temp = head;
+
+	while (temp->next && (nE->y > temp->y || (nE->y == temp->y && nE->m > temp->m) || (nE->y == temp->y && nE->m == temp->m && nE->d > temp->d)))
+	{
+		temp = temp->next;
+	}
+
+
+	nE->next = temp->next;
+	temp->next = nE;
+
+	return 0;
+}
+
+
+pozicijaArtikla KreirajArtiklSortirano(pozicijRacuna Racun, char naziv[1024], int kolicina, double cijena)
+{
+
+	pozicijaArtikla novi = (pozicijaArtikla)malloc(sizeof(Artikl));
+	if (!novi) return NULL;
+
+	strncpy(novi->naziv, naziv,sizeof(novi->naziv)-1);
+	novi->naziv[sizeof(novi->naziv) - 1] = '\0';
+
+	novi->kolicina = kolicina;
+	novi->cijena = cijena;
+	novi->next = NULL;
+
+	pozicijaArtikla current = Racun->headArtikla;
+
+
+	if (!current || strcmp(naziv, current->naziv) < 0)
+	{
+		novi->next = Racun->headArtikla;
+		Racun->headArtikla = novi;
+		return novi;
+	}
+
+	while (current && strcmp(naziv, current->naziv) > 0)
+	{
+		current = current->next;
+	}
+
+	novi->next = current->next;
+	current->next = novi;
+
+	return novi;
+
+}
+
+void print(pozicijRacuna headRacuna)
+{
+
+	pozicijRacuna current = headRacuna->next;
+
+	while (current)
+	{
+		printf("Racun %d %d %d", current->d, current->m, current->d);
+
+		pozicijaArtikla temp = current->headArtikla->next;
+
+		while (temp)
+		{
+			printf("%s %d %lf", temp->naziv, temp->kolicina, temp->cijena);
+		}
+
+		temp = temp->next;
+
+	}
+
+	current = current->next;
+}
+
+int main()
+{
+	struct Racun headRacuna;
+	struct Artikl headArtikla;
+
+	headArtikla.next = NULL;
+	headRacuna.next = NULL;
+
+	citajDatoteku("racuni1.txt", &headRacuna);
+	print(&headRacuna);
+
+
+	return 0;
+	
+
+}
