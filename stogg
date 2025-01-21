@@ -1,0 +1,136 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<ctype.h>
+
+
+typedef struct stack* position;
+
+struct stack {
+	
+	int value;
+	position next;
+
+};
+
+
+position creteNewElement(int value)
+{
+	position nE = (position)malloc(sizeof(stack));
+	if (!nE) return NULL;
+
+	nE->value = value;
+	nE->next = NULL;
+
+	return nE;
+}
+
+int push(position head,int value)
+{
+
+	position nE = creteNewElement(value);
+
+	nE->next = head->next;
+	head->next = nE;
+
+	return 0;
+}
+
+
+int isEmpty(position head)
+{
+	return head->next == NULL;
+}
+
+double pop(position head)
+{
+
+	position temp = head->next;
+	int value=temp->value;
+	if (isEmpty(head))
+	{
+		printf("Greška u stogu!");
+		return -1;
+	}
+
+	head->next = temp->next;
+	free(temp);
+
+	return value;
+
+}
+
+int Operator(position head, char operation)
+{
+	int operand1 = pop(head);
+	int operand2 = pop(head);
+	double result;
+
+
+	switch (operation)
+	{
+	case '+':
+		result = operand1 + operand2;
+		break;
+	case '-':
+		result = operand1 - operand2;
+		break;
+	case '*':
+		result = operand1 * operand2;
+
+	case '/':
+		if (operand2 == 0)
+		{
+			printf("Zabranjeno je djeljenje s nulom");
+			return -1;
+		}
+		
+			result = operand1 / operand2;
+		break;
+	default:
+		printf("Neispravna operacija!");
+		return -1;
+	
+	}
+
+
+	push(head, result);
+	return 0;
+
+
+}
+
+
+int  CalculatePostfix(position head, const char* filename)
+{
+	FILE* fp = fopen(filename, "r");
+	if (!fp)return -1;
+
+	char buffer[1024];
+
+	while (fscanf(fp, "%s", buffer) == 1)
+	{
+		if (isdigit(buffer[0]) || (buffer[0] = '-' && isdigit(buffer[1])))
+		{
+			double value = atoi(buffer);
+			push(head, value);
+		}
+
+		else if (strlen(buffer) == 1)
+		{
+			if (Operator(head, buffer[0]) != 0)
+			{
+				fclose(fp);
+				return -1;
+			}
+		}
+
+		else
+		{
+			printf("Neispravan token!");
+			fclose(fp);
+			return -1;
+		}
+	}
+
+}
