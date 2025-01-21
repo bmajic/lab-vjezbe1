@@ -1,0 +1,188 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<ctype.h>
+
+
+
+typedef struct stack* position;
+
+struct stack
+{
+	double value;
+	position next;
+
+};
+
+position createNewElement(double value)
+{
+	position nE = (position)malloc(sizeof(stack));
+	if (!nE)return NULL;
+
+	nE->next = NULL;
+	nE->value = value;
+
+	return nE;
+}
+
+int push(position head,double value)
+{
+	position nE = createNewElement(value);
+
+	nE->next = head->next;
+	head->next = nE;
+
+	return 0;
+
+
+}
+
+int isEmpty(position head)
+{
+	return head->next == NULL;
+}
+
+double pop(position head)
+{
+	if (isEmpty)
+	{
+		printf("Stog je prazan");
+		return -1;
+    }
+
+	position temp = head->next;
+	double value = temp->value;
+
+	head->next = temp->next;
+	free(temp);
+
+	return value;
+
+}
+
+
+int PreformOperation(position head, char operation)
+{
+
+	double operand1 = pop(head);
+	double operand2 = pop(head);
+
+
+	double result;
+
+	switch (operation)
+	{
+	case '+':
+		result = operand1 + operand2;
+		break;
+	case '-':
+		result = operand1 - operand2;
+		break;
+    
+	case '/':
+		if (operand2 == 0)
+		{
+			printf("Dijeljenje s nulom nije dozvoljeno");
+			return -1;
+		}
+		result = operand1 / operand2;
+		break;
+
+	case '*':
+
+		result = operand1 * operand2;
+		break;
+	default:
+		printf("Neispravana operacija!!");
+		return -1;
+	}
+
+	push(head, result);
+
+	return 0;
+
+}
+
+void freeStack(position head)
+{
+	while (!isEmpty)
+	{
+		pop(head);
+	}
+}
+
+int CalculatePostfix(position head, const char* filename)
+{
+
+	FILE* fp = fopen(filename, "r");
+	if (!fp)return -1;
+
+	char buffer[1024];
+
+	while (fscanf(fp, "%s", buffer) == 1)
+	{
+		if (isdigit(buffer[0]) || (buffer[0] = '-' && isdigit(buffer[1])))
+		{
+			double value = atoi(buffer);
+			push(head, value);
+		}
+
+		else if (strlen(buffer)==1)
+		{
+			if (PreformOperation(head, buffer[0]) != 0)
+			{
+				fclose(fp);
+				return -1;
+			}
+		}
+
+		else
+		{
+			printf("Neispravan token!!");
+			fclose(fp);
+			return -1;
+		}
+	}
+
+	fclose(fp);
+	while (head->next && head->next->next)
+	{
+		printf("neispravan stog!!");
+		return -1;
+	}
+
+	return pop(head);
+}
+
+
+int main()
+{
+
+	position head;
+	head->next = NULL;
+	
+	const char* filename = "stack.txt";
+
+	double result = CalculatePostfix(head, filename);
+	
+
+
+
+	if (result == -1)
+	{
+		printf("Greška tijekom obrade postfix izraza.\n");
+	}
+	else
+	{
+		printf("Rezultat postfix izraza: %.2f\n", result);
+	}
+
+	
+	freeStack(head);
+
+	
+
+
+
+	return 0;
+}
