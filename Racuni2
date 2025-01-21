@@ -1,0 +1,149 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<ctype.h>
+
+
+typedef struct racun* pozicijaRacuna;
+typedef struct artikl* pozicijaArtikla;
+
+
+struct racun
+{
+	int y, m, d;
+	pozicijaArtikla head_artikla;
+	pozicijaRacuna next;
+};
+
+struct artikl
+{
+	char naziv[1024];
+	int kolicina;
+	double cijena;
+	pozicijaArtikla next;
+
+};
+
+pozicijaRacuna KreireajRacun(pozicijaRacuna headRacuna, int day, int month, int year)
+{
+
+	pozicijaRacuna novi = (pozicijaRacuna)malloc(sizeof(racun));
+	if (!novi) return NULL;
+
+	novi->d = day;
+	novi->m = month;
+	novi->y = year;
+
+	novi->next = NULL;
+	novi->head_artikla = NULL;
+
+	if (SortirajRacun(headRacuna, novi) != 0)
+	{
+		free(novi);
+		return NULL;
+	}
+
+
+	return novi;
+
+}
+
+
+int SortirajRacun(pozicijaRacuna headracuna, pozicijaRacuna nE)
+{
+	{
+
+		pozicijaRacuna current = headracuna;
+
+		while (current->next && (nE->y > current->next->y || (nE->y == current->next->y && nE->m > current->next->m) || (nE->y == current->next->y && nE->m == current->next->m && nE->d > current->next->d)))
+		{
+
+			current = current->next;
+
+		}
+
+		nE->next = current->next;
+		current->next = nE;
+
+		return 0;
+	}
+
+}
+
+
+pozicijaArtikla KreirajArtiklSortirano(pozicijaRacuna Racun, char naziv[], int kolicina, double cijena)
+{
+
+	pozicijaArtikla novi = (pozicijaArtikla)malloc(sizeof(artikl));
+
+	if (!novi) return NULL;
+
+	strcpy(novi->naziv,naziv);
+	novi->cijena = cijena;
+	novi->kolicina = kolicina;
+
+	novi->next = NULL;
+
+	pozicijaArtikla curerent = Racun->head_artikla;
+
+	while (curerent && strcmp(naziv, curerent->naziv) > 0)
+	{
+		curerent = curerent->next;
+	}
+
+
+		novi->next=curerent->next;
+		curerent->next = novi;
+	
+	
+	return novi;
+}
+
+int citajRacun(char naziv[], pozicijaRacuna head)
+{
+
+	FILE* fp = fopen(naziv, "r");
+	if (!fp) return -1;
+
+	int y, m, d;
+
+	fscanf(fp, "%d %d %d", &y, &m, &d);
+	pozicijaRacuna NoviRacun = KreireajRacun(head, d, y, m);
+
+
+	char Naziv[1024];
+	int kolicina;
+	double cijena;
+
+	while (fscanf(fp, "%c %d %l", Naziv, kolicina, cijena) == 3)
+	{
+		KreirajArtiklSortirano(NoviRacun, Naziv, kolicina, cijena);
+	}
+
+	fclose(fp);
+	return 0;
+
+
+}
+
+
+int citajdatoteku(const char* filename,pozicijaRacuna head)
+{
+
+	FILE* fp = fopen(filename, "r");
+	if (!fp) return -1;
+
+
+	char imeRacuna[1024];
+
+	while (fscanf(fp, "%s", imeRacuna) == 1)
+	{
+		citajRacun(imeRacuna, head);
+	}
+
+	fclose(fp);
+	return 0;
+
+}
+
+
