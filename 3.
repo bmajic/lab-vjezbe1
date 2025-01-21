@@ -1,0 +1,226 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+
+typedef struct Node* position;
+
+struct Node {
+
+	char ime[50];
+	char prezime[50];
+	int god;
+	position next;
+};
+
+
+position createNewPerson(const char* ime, const char* prezime, int god)
+{
+	position NewPerson = (position)malloc(sizeof(Node));
+	if (!NewPerson) return NULL;
+
+	strncpy( NewPerson->ime, ime , sizeof(NewPerson->ime)-1);
+	NewPerson->ime[sizeof(NewPerson->ime) - 1] = '\0';
+
+
+
+	strncpy(NewPerson->prezime, prezime, sizeof(NewPerson->prezime) - 1);
+	NewPerson->prezime[sizeof(NewPerson->prezime) - 1] = '\0';
+
+	NewPerson->god = god;
+	NewPerson->next = NULL;
+
+	return NewPerson;
+}
+
+
+void Addfirst(position head,position temp)
+{
+	temp->next = head->next;
+	head->next = temp;
+
+}
+
+void print(position head)
+{
+	position temp = head;
+
+	while (temp->next != NULL)
+	{
+		printf("%c %c %d\n", temp->ime, temp->prezime, temp->god);
+		temp = temp->next;
+	}
+}
+
+void addLast(position head, position NewPerson)
+{
+
+	position temp = head;
+
+	while(temp->next != NULL)
+	{
+		temp = temp->next;
+	}
+
+	temp->next = NewPerson;
+
+	return;
+ }
+
+position FinSurname(const char* prezime, position head)
+{
+	position temp = head;
+
+	while (temp != NULL)
+	{
+		if (strcmp(temp->prezime, prezime) == 0)
+		{
+			return temp;
+		}
+
+		temp = temp->next;
+	}
+
+	return NULL;
+}
+
+
+void DeleteSurname(const char* prezime, position head)
+{
+	position temp = head;
+
+	while (temp->next != NULL)
+	{
+		if (strcmp(temp->next->prezime, prezime) == 0)
+		{
+			position prev = temp->next;
+			temp->next = prev->next;
+			free(prev);
+			printf("Osoba s prezimenom %s je izbrisana iz liste!", prezime);
+			return;
+		}
+
+		temp = temp->next;
+
+	}
+	printf("Osoba s prezimenom '%s' nije pronađena.\n", prezime);
+}
+
+void addAfter(position head, position newElement,const char* prezime)
+{
+	position temp = head;
+
+	while (temp->next != NULL && strcmp(temp->prezime, prezime) != 0)
+	{
+		temp = temp->next;
+	}
+
+	newElement->next = temp->next;
+	temp->next = newElement; 
+
+	return;
+
+}
+
+void addBefore(position head, position newElement, const char* prezime)
+{
+	position temp = head;
+
+	while (temp->next != NULL && strcmp(temp->next->prezime, prezime) != 0)
+	{
+		temp = temp->next;
+	}
+
+	if (temp->next == NULL)
+	{
+		printf("Element is not found!!\n");
+		return;
+	}
+
+	newElement->next = temp->next;
+	temp->next = newElement;
+}
+
+int readFromFile(const char* filename, position head)
+{
+	FILE* fp = fopen(filename, "r");
+	if (!fp)return -1;
+
+	char ime[20];
+	char prezime[20];
+	int god;
+
+	while (fscanf(fp, "%s %s %d", ime, prezime, &god) == 3)
+	{
+		position Newperson=createNewPerson(ime, prezime, god);
+		if (Newperson == NULL) {
+			fprintf(stderr, "Greška pri kreiranju novog elementa!\n");
+			fclose(fp);
+			return -1; 
+		}
+		addLast(head, Newperson);
+
+	}
+
+	fclose(fp);
+	printf("Uspješno čitanje iz datoteke!");
+	return 0;
+
+}
+
+int writeInFile(const char* filename, position head)
+{
+	FILE* fp = fopen(filename, "w");
+	if (!fp) return -1;
+
+
+	position temp = head->next;
+
+	while (temp != NULL)
+	{
+		fprintf(fp, "%s %s %d", temp->ime, temp->prezime, temp->god);
+		temp = temp->next;
+	}
+
+	fclose(fp);
+}
+
+
+int main()
+{
+
+	struct Node head;
+	head.next = NULL;
+
+	position Person1 = createNewPerson("Josip", "Jokić", 23);
+	Addfirst(&head, Person1);
+
+	position Person2 = createNewPerson("Jhonny", "Lawrence", 27);
+	Addfirst(&head, Person2);
+
+	position Person3 = createNewPerson("Giannis", "Atentokoumpo", 27);
+	position Person4 = createNewPerson("Marko", "Livaja", 31);
+
+
+	printf("Ispis liste!\n");
+	print(&head);
+
+	position PronađenaOsoba = FinSurname("Jokić", &head);
+
+	if (!PronađenaOsoba)
+	{
+		printf("Osoba s prezimenom '%s' nije pronađena u listi", PronađenaOsoba);
+	}
+
+	else
+
+		printf("Osoba s prezimenom '%s' je pronađena!!", PronađenaOsoba);
+
+
+	DeleteSurname("Lawrence", &head);
+	addAfter(&head, Person4, "Jokić");
+
+
+
+	return 0;
+}
