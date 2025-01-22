@@ -1,0 +1,81 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<ctype.h>
+
+
+typedef struct osoba* position;
+
+struct osoba {
+	char ime[100];
+	char prezime[100];
+	int godina;
+	position next;
+
+};
+
+position stvori(char* ime, char* prezime, int godina)
+{
+	position novi = (position)malloc(sizeof(osoba));
+	if (!novi)return NULL;
+
+	strcpy(novi->ime, ime);
+	strcpy(novi->prezime, prezime);
+	novi->godina = godina;
+
+	return novi;
+}
+
+position dodajsortirano(position first, position novaOsoba)
+{
+	
+	if (first == NULL || strcmp(novaOsoba->prezime, first->prezime)> 0)
+	{
+		novaOsoba->next = first;
+		return novaOsoba;
+
+	}
+
+	position temp = first;
+
+	while (temp->next != NULL && strcmp(novaOsoba->prezime, temp->next->prezime) >= 0)
+	{
+		temp = temp->next;
+	}
+
+	novaOsoba->next = temp->next;
+	temp->next = novaOsoba;
+
+	return first;
+
+}
+
+void ispisi(position head) {
+
+	position temp = head;
+	while (temp != NULL) {
+		printf("%s %s %d\n", temp->ime, temp->prezime, temp->godina);
+		temp = temp->next;
+	}
+}
+
+
+int main() {
+	osoba head;
+	head.next = NULL;
+FILE* fp = fopen("imena.txt", "r");
+	int godina;
+	char ime[15], prezime[15];
+	while (fscanf(fp, "%s %s %d", ime, prezime, &godina) == 3) {
+		position novaosoba = stvori(ime, prezime, godina);
+		head.next = dodajsortirano(head.next, novaosoba);
+	}
+	fclose(fp); 
+		ispisi(head.next);
+	return 0;
+}
+
+
+
+
