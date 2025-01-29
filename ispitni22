@@ -1,0 +1,136 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<time.h>
+#define maxLine 32
+
+typedef struct employee* position1;
+typedef struct date* datePos;
+
+struct employee
+{
+    char ime[maxLine];
+    char prezime[maxLine];
+    int placa;
+    datePos datum;
+    position1 next;
+};
+
+struct date
+{
+    int d, m, y;
+};
+
+datePos CreateDate(int d, int m, int y)
+{
+    datePos novi = (datePos)malloc(sizeof(date));
+    if (!novi) return NULL;
+
+    novi->d = d;
+    novi->m = m;
+    novi->y = y;
+
+    return novi;
+}
+
+position1 insertSorted(position1 head, position1 nE)
+{
+    position1 current = head;
+
+    // Pronađi odgovarajući položaj za novi element
+    while (current->next != NULL &&
+        (nE->datum->y > current->datum->y ||
+            (nE->datum->y == current->datum->y && nE->datum->m > current->datum->m) ||
+            (nE->datum->y == current->datum->y && nE->datum->m == current->datum->m && nE->datum->d > current->datum->d)))
+    {
+        current = current->next;
+    }
+
+    nE->next = current->next;
+    current->next = nE;
+
+    return head;
+}
+
+position1 CreateEmployee(position1 head, char* ime, char* prezime, int d, int m, int y)
+{
+    position1 newEmployee = (position1)malloc(sizeof(struct employee));
+    if (!newEmployee) return NULL;
+
+    newEmployee->datum = CreateDate(d, m, y);
+    strcpy(newEmployee->ime, ime);
+    strcpy(newEmployee->prezime, prezime);
+
+    // Generisanje plate između 1000 i 1050
+    newEmployee->placa = rand() % 51 + 1000;
+    newEmployee->next = NULL;
+
+    head = insertSorted(head, newEmployee);
+
+    return head;
+}
+
+void printList(position1 head)
+{
+    position1 temp = head->next;
+
+    // Ispis svih zaposlenih
+    while (temp != NULL)
+    {
+        printf("%s %s, Placa: %d, Datum rođenja: %02d/%02d/%04d\n",
+            temp->ime, temp->prezime, temp->placa,
+            temp->datum->d, temp->datum->m, temp->datum->y);
+        temp = temp->next;
+    }
+}
+
+int main()
+{
+    srand(time(0));  // Inicijalizacija generatora slučajnih brojeva
+
+    position1 head = (position1)malloc(sizeof(struct employee));
+    if (!head) return -1;
+
+    head->next = NULL;
+
+    int n;
+    char ime[maxLine], prezime[maxLine];
+    int d, m, y;
+
+    // Unos broja zaposlenih
+    printf("Unesi broj zaposlenika: ");
+    if (scanf("%d", &n) != 1 || n <= 0) {
+        printf("Neispravan unos broja zaposlenih!\n");
+        return -1;
+    }
+
+    // Unos podataka za svakog zaposlenog
+    for (int i = 0; i < n; i++)
+    {
+        printf("Unesi %d. ime: ", i + 1);
+        scanf("%s", ime);
+        printf("Unesi %d. prezime: ", i + 1);
+        scanf("%s", prezime);
+        printf("Unesi datum rođenja (dd mm yyyy) %d. zaposlenika: ", i + 1);
+        scanf("%d %d %d", &d, &m, &y);
+
+        // Kreiranje zaposlenog i umetanje u listu
+        head = CreateEmployee(head, ime, prezime, d, m, y);
+    }
+
+    // Ispisivanje svih zaposlenih
+    printf("\nLista zaposlenih:\n");
+    printList(head);
+
+    // Oslobađanje memorije
+    position1 temp;
+    while (head != NULL)
+    {
+        temp = head;
+        head = head->next;
+        free(temp->datum);  // Oslobađanje memorije za datum
+        free(temp);
+    }
+    return 0;
+}
