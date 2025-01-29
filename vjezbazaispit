@@ -1,0 +1,260 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<ctype.h>
+#define NAME_LENGHT 50
+
+typedef struct Person* position;
+
+struct Person
+{
+	char ime[NAME_LENGHT];
+	char prezime[NAME_LENGHT];
+	int d, m, y;
+	position next;
+
+};
+
+
+
+
+
+position createNewPerson( char*, char*, int, int, int);
+int insertSorted(position, position);
+void ReadFromFile(const char*, position);
+void printList(position);
+void DeletePerson(position);
+void FreeList(position);
+void DeletebyDate(position);
+
+
+
+int main()
+{
+ 
+	struct Person head;
+	head.next = NULL;
+
+
+
+
+	ReadFromFile("vjezba.txt", &head);
+	printList(&head);
+	
+	DeletePerson(&head);
+	
+	printList(&head);
+
+	
+	DeletePerson(&head);
+
+	printList(&head);
+
+
+	DeletebyDate(&head);
+
+	
+
+	printList(&head);
+
+
+
+	FreeList(&head);
+
+
+	return 0;
+
+
+
+}
+
+
+position createNewPerson(char* ime, char* prezime, int d, int m, int y)
+{
+	position newPerson = (position)malloc(sizeof(Person));
+	if (!newPerson)return NULL;
+
+	strcpy(newPerson->ime, ime);
+	strcpy(newPerson->prezime, prezime);
+
+	newPerson->d = d;
+	newPerson->m = m;
+	newPerson->y = y;
+	newPerson->next = NULL;
+
+	
+
+	return newPerson;
+
+
+}
+
+int insertSorted(position head, position nE)
+{
+	position current = head;
+	
+	
+	while (current->next != NULL &&	(nE->y > current->next->y ||(nE->y == current->next->y && nE->m > current->next->m) ||
+		(nE->y == current->next->y && nE->m == current->next->m && nE->d > current->next->d))) 
+	{
+		current = current->next;
+	}
+
+
+	nE->next = current->next;
+	current->next = nE;
+
+	return 0;
+
+}
+
+void ReadFromFile(const char* filename, position head)
+{
+
+	FILE* fp = fopen(filename, "r");
+
+		if(!fp) return;
+
+		char ime[NAME_LENGHT];
+		char prezime[NAME_LENGHT];
+		int d, m, y;
+
+		while (fscanf(fp, "%s %s %d %d %d", ime, prezime, &d, &m, &y) == 5)
+		{
+			position newPerson = createNewPerson( ime, prezime, d, m, y);
+			if (!newPerson)
+			{
+				printf("Error in malloc in fileReading(line 86)!!!");
+				fclose(fp);
+				return;
+			}
+
+			insertSorted(head, newPerson);
+
+		}
+
+
+		fclose(fp);
+
+
+}
+
+void printList(position head)
+{
+	position current = head->next;
+	if (current == NULL)
+	{
+		printf("Lista je prazna");
+		return;
+	}
+
+	while (current != NULL)
+	{
+		printf("%s %s %02d/%02d/%04d\n", current->ime, current->prezime, current->d, current->m, current->y);
+		current = current->next;
+	}
+
+	printf("\n");
+	printf("\n");
+	printf("\n");
+
+	return;
+}
+
+
+void DeletePerson(position head )
+{
+	char prezime[NAME_LENGHT];
+	printf("Unesite prezime osobe koje želite izbrisati iz liste: ");
+	fgets(prezime, NAME_LENGHT,stdin);
+
+	prezime[strcspn(prezime, "\n")] = '\0';
+
+
+	position temp = head->next;
+	position prev = head;
+
+	while (temp != NULL)
+	{
+		if (strcmp(temp->prezime, prezime) == 0)
+		{
+			prev->next = temp->next;
+			free(temp);
+			temp = prev->next;
+		}
+
+		
+		{
+			prev = temp;
+			temp = temp->next;
+		}
+	}
+
+	return;
+
+}
+
+
+void FreeList(position head)
+{
+	position temp;
+
+	while (head != NULL)
+	{
+		temp = head;
+		head = head->next;
+		free(temp);
+		
+	}
+
+
+
+}
+
+
+void DeletebyDate(position head)
+{
+
+	int d, m, y;
+	printf("Unesi datum nakon kojeg želiš izbrisati zaposlenike: ");
+	scanf("%d %d %d", &d, &m, &y);
+
+	if (scanf("%d %d %d", &d, &m, &y) != 3)
+	{
+		printf("Neispravan datum");
+		return;
+	}
+
+	position temp = head->next;
+	position prev = head;
+
+	while (temp != NULL)
+	{
+
+		if (y > temp->y || (y == temp->y && m > temp->m) || (y == temp->y && m == temp->m && d > temp->d))
+		{
+			prev->next = temp->next;
+			free(temp);
+			temp = prev->next;
+
+		}
+		else {
+			prev = temp;
+			temp = temp->next;
+
+		}
+
+
+
+	}
+
+
+
+	return;
+
+
+}
+
+
+
